@@ -1,0 +1,63 @@
+public class ModelObject {
+    HashMap<String, String> mapa;
+    List<String> lista;
+    String name;
+    int val;
+    boolean status;
+    double f;
+
+    public ModelObject(String name, int val,
+                       boolean status, double f) {
+        super();
+        this.name = name;
+        this.val = val;
+        this.status = status;
+        this.f = f;
+        this.mapa = new HashMap<>();
+        this.mapa.put("key0","value");
+        this.mapa.put("key1","value");
+        this.mapa.put("key2","value");
+
+        this.lista = new ArrayList<>();
+        this.lista.add("val0");
+        this.lista.add("val1");
+        this.lista.add("val2");
+    }
+
+    @Override
+    public String toString() {
+        return "ModelObject [name=" + name + ",val=" + val + ", status="
+                + status + ", f=" + f + "]"+mapa.toString();
+    }
+
+}
+
+final Gson gson = new Gson();
+        // original object instantiation
+        ModelObject modelObject = new ModelObject("myname", 12, true, 2.3);
+
+        String str = "";
+        str += "toJson ----\n";
+        str += "Original Java object : " + modelObject.toString() + "\n";
+
+        // converting an object to json object
+        String json = gson.toJson(modelObject);
+
+        str += "Converted JSON string is : " + json + "\n";
+        str += "fromJson----\n";
+        // getting object from json representation
+        str += "Original JSON string is : " + json + "\n";
+
+        // converting json to object
+        ModelObject modelObject1 = gson.fromJson(json, ModelObject.class);
+
+        str += "Converted Java object : " + modelObject1.toString() + "\n";
+
+        message.setText(str);
+
+
+    compile 'com.google.code.gson:gson:2.2.4'
+
+    repositories {
+        mavenCentral()
+    }

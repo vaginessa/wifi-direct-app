@@ -1,0 +1,21 @@
+<resources>
+    <!-- Titles -->
+    <string name="app_name">Seeker</string>
+    <string name="title_logs">Logs</string>
+
+    <!-- Actions -->
+    <string name="action_toggle_wifi">Toggle Wi-Fi</string>
+    <string name="action_view_contacts">Contactos</string>
+    <string name="action_view_logs">View Logs</string>
+    <string name="action_exit">Salir</string>
+    <string name="action_close">Cerrar</string>
+    <string name="action_refresh">Reiniciar</string>
+    <string name="action_register_service">Registrar Servicio Local</string>
+    <string name="action_discover_services">Descubrir Servicios</string>
+    <string name="action_look_for_devices">Buscar Dispositivos</string>
+    <string name="action_register_no_prompt">Register No-Prompt Service</string>
+    <string name="action_register_go_intent">Maestro / Esclavo</string>
+    <string name="type_message">Escribir mensaje</string>
+    <string name="send">➤</string>
+    <string name="finding_services">Encontrar servicios</string>
+</resources>
