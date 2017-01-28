@@ -52,7 +52,6 @@ public class WifiDirectHandler extends NonStopIntentService implements
     private final String WIFI_STATE = "wifiState";
 
     public static final int GROUP_OWNER_INTENT_ACCESS_POINT = 15;
-    public static final int GROUP_OWNER_INTENT_MASTER = 7;
     public static final int GROUP_OWNER_INTENT_SLAVE = 0;
 
     private Map<String, DnsSdTxtRecord> dnsSdTxtRecordMap;
@@ -1048,9 +1047,6 @@ public class WifiDirectHandler extends NonStopIntentService implements
         switch (this.goIntent) {
             case WifiDirectHandler.GROUP_OWNER_INTENT_SLAVE:
                 Log.i(TAG,"GROUP_OWNER_INTENT_SLAVE");
-                break;
-            case WifiDirectHandler.GROUP_OWNER_INTENT_MASTER:
-                Log.i(TAG,"GROUP_OWNER_INTENT_MASTER");
                 break;
             case WifiDirectHandler.GROUP_OWNER_INTENT_ACCESS_POINT:
                 Log.i(TAG,"GROUP_OWNER_INTENT_ACCESS_POINT");

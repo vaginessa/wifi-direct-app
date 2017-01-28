@@ -30,6 +30,12 @@
 
     <Switch
         style="@style/styleSwitchDefault"
+        android:id="@+id/rangeExtenderRegistrationSwitch"
+        android:text="@string/action_register_range_extender"
+        android:checked="false" />
+
+    <Switch
+        style="@style/styleSwitchDefault"
         android:id="@+id/serviceRegistrationSwitch"
         android:text="@string/action_register_service"
         android:checked="false"

@@ -15,6 +15,7 @@
     <string name="action_look_for_devices">Buscar Dispositivos</string>
     <string name="action_register_no_prompt">Register No-Prompt Service</string>
     <string name="action_register_go_intent">Maestro / Esclavo</string>
+    <string name="action_register_range_extender">Intermediario / Esclavo</string>
     <string name="type_message">Escribir mensaje</string>
     <string name="send">➤</string>
     <string name="finding_services">Encontrar servicios</string>

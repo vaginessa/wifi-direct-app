@@ -41,6 +41,7 @@ import edu.rit.se.crashavoidance.R;
 import edu.rit.se.crashavoidance.network.Device;
 import edu.rit.se.crashavoidance.network.DeviceRequest;
 import edu.rit.se.crashavoidance.network.DeviceResponse;
+import edu.rit.se.crashavoidance.network.DeviceType;
 import edu.rit.se.crashavoidance.network.Message;
 import edu.rit.se.crashavoidance.network.MessageType;
 import edu.rit.se.crashavoidance.network.ObjectType;
@@ -139,95 +140,83 @@ public class ChatFragment extends ListFragment {
             }
         });
 
-        switch (handlerAccessor.getWifiHandler().getGoIntent()) {
-            case WifiDirectHandler.GROUP_OWNER_INTENT_SLAVE:
-                Log.i(TAG, "GROUP_OWNER_INTENT_SLAVE");
+        switch (activity.deviceType) {
+            case EMITTER:
+                Log.i(TAG, "EMITTER");
                 if (activity.curDevice != null) {
-                    sendMessage(gson.toJson(activity.curDevice), ObjectType.DISCOVERY);
+                    sendMessage(gson.toJson(activity.curDevice), ObjectType.HELLO);
                     Log.i(TAG, "Message sent successfully.");
-
-                    postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            AvailableServicesFragment availableServicesFragment = new AvailableServicesFragment();
-                            activity.replaceFragment(availableServicesFragment);
-                            Log.i(TAG, "Switching to Services fragment");
-                        }
-                    }, 2000);
+                    returnToListFragment();
                 }
                 break;
-            case WifiDirectHandler.GROUP_OWNER_INTENT_MASTER:
-                Log.i(TAG, "GROUP_OWNER_INTENT_MASTER");
+            case QUERIER:
+                Log.i(TAG, "QUERIER");
+                if (activity.curRequest != null) {
+                    Log.i(TAG, "Request");
+                    sendMessage(gson.toJson(activity.curRequest), ObjectType.REQUEST);
+                    Log.i(TAG, "Message sent successfully.");
+                }
+                break;
+            case ACCESS_POINT:
+                Log.i(TAG, "ACCESS_POINT");
                 if (activity.curResponse != null) {
-                    Log.i(TAG, "GROUP_OWNER_INTENT_MASTER Response");
+                    Log.i(TAG, "Response");
 
                     sendMessage(gson.toJson(activity.curResponse), ObjectType.RESPONSE);
                     Log.i(TAG, "Message sent successfully.");
 
+                    //TODO: list containing sent requests & responses
                     activity.curResponse = null;
                     activity.curRequest = null;
-
-                    /*postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            AvailableServicesFragment availableServicesFragment = new AvailableServicesFragment();
-                            activity.replaceFragment(availableServicesFragment);
-                            Log.i(TAG, "Switching to Services fragment");
-                        }
-                    }, 2000);*/
-                }
-                else if (activity.curRequest != null) {
-                    Log.i(TAG, "GROUP_OWNER_INTENT_MASTER Request");
-
+                } else if (activity.curRequest != null) { //TODO: verify if it doesn't loop
+                    Log.i(TAG, "Request");
                     sendMessage(gson.toJson(activity.curRequest), ObjectType.REQUEST);
                     Log.i(TAG, "Message sent successfully.");
 
-                    /*postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            AvailableServicesFragment availableServicesFragment = new AvailableServicesFragment();
-                            activity.replaceFragment(availableServicesFragment);
-                            Log.i(TAG, "Switching to Services fragment");
-                        }
-                    }, 2000);*/
+                    //TODO: list containing sent requests & responses
+                    activity.curRequest = null;
                 }
-                //}
                 break;
-            case WifiDirectHandler.GROUP_OWNER_INTENT_ACCESS_POINT:
-                Log.i(TAG, "Listening for messages (IDLE).");
+            case RANGE_EXTENDER:
+                Log.i(TAG, "RANGE_EXTENDER");
+                if (activity.curResponse != null) {
+                    Log.i(TAG, "Response");
+
+                    sendMessage(gson.toJson(activity.curResponse), ObjectType.RESPONSE);
+                    Log.i(TAG, "Message sent successfully.");
+
+                    //TODO: list containing sent requests & responses
+                    activity.curResponse = null;
+                    activity.curRequest = null;
+                } else if (activity.curRequest != null) { //TODO: verify if it doesn't loop
+                    Log.i(TAG, "Request");
+                    sendMessage(gson.toJson(activity.curRequest), ObjectType.REQUEST);
+                    Log.i(TAG, "Message sent successfully.");
+
+                    //TODO: list containing sent requests & responses
+                    activity.curRequest = null;
+                }
                 break;
             default:
+                Log.e(TAG, "Not defined device type.");
         }
 
         return view;
     }
 
-    private void postDelayed(Runnable runnable, int time) {
-        new Handler().postDelayed(runnable,time);
+    private void returnToListFragment() {
+        postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                AvailableServicesFragment availableServicesFragment = new AvailableServicesFragment();
+                activity.replaceFragment(availableServicesFragment);
+                Log.i(TAG, "Switching to Services fragment");
+            }
+        }, 2000);
     }
 
-    public void sendMessage(String message) {
-        Log.i(WifiDirectHandler.TAG, "Send button tapped");
-        CommunicationManager communicationManager = handlerAccessor.getWifiHandler().getCommunicationManager();
-        if (communicationManager != null && !textMessageEditText.toString().equals("")) {
-            //String message = textMessageEditText.getText().toString();
-            // Gets first word of device name
-            //String author = handlerAccessor.getWifiHandler().getThisDevice().deviceName.split(" ")[0];
-            //byte[] messageBytes = (author + ": " + message).getBytes();
-            byte[] messageBytes = (message).getBytes();
-            Message finalMessage = new Message(MessageType.TEXT, messageBytes);
-            communicationManager.write(SerializationUtils.serialize(finalMessage));
-        } else {
-            Log.e(TAG, "Communication Manager is null");
-        }
-        //String message = textMessageEditText.getText().toString();
-        if (!message.equals("")) {
-            pushMessage("Me: " + message);
-            messages.add(message);
-            Log.i(TAG, "Message: " + message);
-            textMessageEditText.setText("");
-        }
-        sendButton.setEnabled(false);
+    private void postDelayed(Runnable runnable, int time) {
+        new Handler().postDelayed(runnable,time);
     }
 
     public void sendMessage(String message, ObjectType objectType) {
@@ -282,11 +271,18 @@ public class ChatFragment extends ListFragment {
     public void processMessage(Message message) {
         String msg = new String(message.message);
         Log.i(TAG, ""+message);
+
         if (message.objectType == ObjectType.RESPONSE) {
             Log.i(TAG, "Processing RESPONSE ----> " + msg);
             DeviceResponse response = gson.fromJson(msg, DeviceResponse.class);
 
             response.route.add(activity.curDevice);
+
+            activity.curResponse = response;
+
+            handlerAccessor.getWifiHandler().removeGroup();
+
+            returnToListFragment();
 
         } else if (message.objectType == ObjectType.REQUEST) {
             Log.i(TAG, "Processing REQUEST ----> " + msg);
@@ -294,13 +290,6 @@ public class ChatFragment extends ListFragment {
             activity.curRequest = deviceRequest;
             activity.deviceRequests.add(deviceRequest);
 
-            /*if(deviceRequest.srcMAC.equals(handlerAccessor.getWifiHandler().getThisDevice().deviceAddress)) {
-                handlerAccessor.getWifiHandler().removeGroup();
-
-                AvailableServicesFragment availableServicesFragment = new AvailableServicesFragment();
-                activity.replaceFragment(availableServicesFragment);
-                Log.i(TAG, "Switching to Services fragment");
-            } else*/
             if (activity.lookUp(deviceRequest)) {
                 Log.i(TAG, "Device " + gson.toJson(deviceRequest) + " found.");
                 DeviceResponse response = new DeviceResponse();
@@ -313,42 +302,24 @@ public class ChatFragment extends ListFragment {
                 response.route.add(activity.curDevice);
 
                 activity.curResponse = response;
-
                 Log.i(TAG, "Found: --------> " + gson.toJson(response) + " <--------");
-
-                //TODO:check behaviour with more devices
                 sendMessage(gson.toJson(response), ObjectType.RESPONSE);
 
-                //handlerAccessor.getWifiHandler().setGoIntent(WifiDirectHandler.GROUP_OWNER_INTENT_MASTER);
-                //TODO:removeGroup and removeService, then addLocalService
-                //handlerAccessor.getWifiHandler().removeService();
-                //handlerAccessor.getWifiHandler().addLocalService("Wi-Fi Buddy", activity.getServiceRecord());
-                //handlerAccessor.getWifiHandler().removeGroup();
-
-                postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        AvailableServicesFragment availableServicesFragment = new AvailableServicesFragment();
-                        activity.replaceFragment(availableServicesFragment);
-                        Log.i(TAG, "Switching to Services fragment");
-                    }
-                }, 2000);
+                returnToListFragment();
             } else {
                 Log.i(TAG, "Device " + gson.toJson(deviceRequest) + " not found.");
 
+                //Sometimes the connection doesn't get stablished correctly at this point
+                //so added this fix.
                 if(deviceRequest.srcMAC.equals(handlerAccessor.getWifiHandler().getThisDevice().deviceAddress)) {
                     ChatFragment chatFragment = new ChatFragment();
                     activity.replaceFragment(chatFragment);
                 } else {
-                    sendMessage("", ObjectType.CLOSE);
+                    sendMessage("", ObjectType.WAIT);
 
                     postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            handlerAccessor.getWifiHandler().setGoIntent(WifiDirectHandler.GROUP_OWNER_INTENT_MASTER);
-
-                            handlerAccessor.getWifiHandler().addLocalService("Wi-Fi Buddy", activity.getServiceRecord());
-
                             handlerAccessor.getWifiHandler().removeGroup();
 
                             AvailableServicesFragment availableServicesFragment = new AvailableServicesFragment();
@@ -358,43 +329,16 @@ public class ChatFragment extends ListFragment {
                     }, 2000);
                 }
             }
-        } else if (message.objectType ==  ObjectType.DISCOVERY) {
+        } else if (message.objectType ==  ObjectType.HELLO) {
             Device device = gson.fromJson(msg, Device.class);
             activity.devices.add(device);
-
             Log.i(TAG, "Found: --------> " + device.nameID + " <--------");
-
             handlerAccessor.getWifiHandler().removeGroup();
-
-            postDelayed(new Runnable() {
-                @Override
-                public void run() {
-
-                    //handlerAccessor.getWifiHandler().setGoIntent(WifiDirectHandler.GROUP_OWNER_INTENT_SLAVE);
-                    //handlerAccessor.getWifiHandler().addLocalService("Wi-Fi Buddy", activity.getServiceRecord());
-
-                    AvailableServicesFragment availableServicesFragment = new AvailableServicesFragment();
-                    activity.replaceFragment(availableServicesFragment);
-                    Log.i(TAG, "Switching to Services fragment");
-                }
-            }, 2000);
-        } else if (message.objectType == ObjectType.CLOSE) {
-            Log.i(TAG, "Processing CLOSE ----> " + msg);
+            returnToListFragment();
+        } else if (message.objectType == ObjectType.WAIT) {
+            Log.i(TAG, "Processing WAIT ----> " + msg);
             handlerAccessor.getWifiHandler().removeGroup();
-            
-            if (handlerAccessor.getWifiHandler().getGoIntent() == WifiDirectHandler.GROUP_OWNER_INTENT_ACCESS_POINT) {
-                //TODO:verify possible actions
-            } else if (handlerAccessor.getWifiHandler().getGoIntent() == WifiDirectHandler.GROUP_OWNER_INTENT_MASTER) {
-                handlerAccessor.getWifiHandler().setGoIntent(WifiDirectHandler.GROUP_OWNER_INTENT_ACCESS_POINT);
-            } else if (handlerAccessor.getWifiHandler().getGoIntent() == WifiDirectHandler.GROUP_OWNER_INTENT_SLAVE) {
-                //TODO:verify possible actions
-            }
-
-            handlerAccessor.getWifiHandler().addLocalService("Wi-Fi Buddy", activity.getServiceRecord());
-
-            AvailableServicesFragment availableServicesFragment = new AvailableServicesFragment();
-            activity.replaceFragment(availableServicesFragment);
-            Log.i(TAG, "Switching to Services fragment");
+            returnToListFragment();
         }
     }
 

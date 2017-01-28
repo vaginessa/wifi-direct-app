@@ -7,10 +7,6 @@ package edu.rit.se.crashavoidance.network;
 public enum ObjectType {
     REQUEST,
     RESPONSE,
-
-    DISCOVERY,
-    CLOSE,
-
     HELLO,
     WAIT
 }

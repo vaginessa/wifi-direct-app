@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.rit.se.crashavoidance.R;
+import edu.rit.se.crashavoidance.network.DeviceType;
 import edu.rit.se.wifibuddy.DnsSdService;
 import edu.rit.se.wifibuddy.DnsSdTxtRecord;
 
@@ -73,24 +74,7 @@ class AvailableServicesListViewAdapter extends BaseAdapter {
         return convertView;
     }
 
-//    private boolean isMaster(DnsSdService service) {
-//        Map<String, String> mapTxtRecord;
-//        String strTxtRecord = "";
-//        if (context.getWifiHandler() != null) {
-//            DnsSdTxtRecord txtRecord = context.getWifiHandler().getDnsSdTxtRecordMap().get(service.getSrcDevice().deviceAddress);
-//            if (txtRecord != null) {
-//                mapTxtRecord = txtRecord.getRecord();
-//                for (Map.Entry<String, String> record : mapTxtRecord.entrySet()) {
-//                    if (record.getKey().equals("master")) {
-//                        return record.getValue().equals("True");
-//                    }
-//                }
-//            }
-//        }
-//        return false;
-//    }
-
-    public boolean isRecordProperty(DnsSdService service, String propName) {
+    public String getRecordProperty(DnsSdService service, String propName) {
         Map<String, String> mapTxtRecord;
         if (context.getWifiHandler() != null) {
             DnsSdTxtRecord txtRecord = context.getWifiHandler().getDnsSdTxtRecordMap().get(service.getSrcDevice().deviceAddress);
@@ -98,12 +82,12 @@ class AvailableServicesListViewAdapter extends BaseAdapter {
                 mapTxtRecord = txtRecord.getRecord();
                 for (Map.Entry<String, String> record : mapTxtRecord.entrySet()) {
                     if (record.getKey().equals(propName)) {
-                        return record.getValue().equals("True");
+                        return record.getValue();
                     }
                 }
             }
         }
-        return false;
+        return "";
     }
 
     /**
@@ -111,11 +95,12 @@ class AvailableServicesListViewAdapter extends BaseAdapter {
      * @param service Service to be added to list
      * @return false if item was already in the list
      */
-    public Boolean addUnique(DnsSdService service) {
+    public Boolean addUnique(DnsSdService service, DeviceType mytype) {
+        String deviceType = getRecordProperty(service, "DeviceType");
         if (serviceList.contains(service)) {
             return false;
-        } else if (isRecordProperty(service, "master") &&
-                (!service.getSrcDevice().deviceName.equals("Android Device") ||
+        } else if (isDiscoverableFor(mytype, deviceType) &&
+                (!service.getSrcDevice().deviceName.equals("Android Device") &&
                         !service.getSrcDevice().deviceName.equals(""))) {
             serviceList.add(service);
             this.notifyDataSetChanged();
@@ -123,6 +108,19 @@ class AvailableServicesListViewAdapter extends BaseAdapter {
         } else {
             return false;
         }
+    }
+
+    public Boolean isDiscoverableFor(DeviceType myType, String deviceType) {
+        if(myType == DeviceType.ACCESS_POINT) {
+            return deviceType.equals(DeviceType.RANGE_EXTENDER.toString());
+        } else if(myType == DeviceType.EMITTER) {
+            return deviceType.equals(DeviceType.ACCESS_POINT.toString());
+        } else if(myType == DeviceType.QUERIER) {
+            return deviceType.equals(DeviceType.ACCESS_POINT.toString());
+        } else if(myType == DeviceType.RANGE_EXTENDER) {
+            return deviceType.equals(DeviceType.ACCESS_POINT.toString());
+        }
+        return false;
     }
 
     @Override

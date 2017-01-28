@@ -24,8 +24,11 @@ import java.util.List;
 import edu.rit.se.crashavoidance.R;
 import edu.rit.se.crashavoidance.network.DeviceRequest;
 import edu.rit.se.crashavoidance.network.DeviceResponse;
+import edu.rit.se.crashavoidance.network.DeviceType;
 import edu.rit.se.wifibuddy.DnsSdService;
 import edu.rit.se.wifibuddy.WifiDirectHandler;
+
+import static edu.rit.se.crashavoidance.network.DeviceType.*;
 
 /**
  * ListFragment that shows a list of available discovered services
@@ -116,37 +119,51 @@ public class AvailableServicesFragment extends Fragment{
                 DnsSdService service = getHandler().getDnsSdServiceMap().get(serviceKey);
                 Log.d("TIMING", "Service Discovered and Accessed " + (new Date()).getTime());
 
+                MainActivity activity = fragment.context;
+
                 //TODO:identify if removeGroup fits in this method
                 // Add the service to the UI and update
-                Boolean added = servicesListAdapter.addUnique(service);
+                Boolean added = servicesListAdapter.addUnique(service, activity.deviceType);
                 if (added) {
-                    MainActivity activity = fragment.context;
                     String deviceAddress = service.getSrcDevice().deviceAddress;
-                    switch (getHandler().getGoIntent()) {
-                        case WifiDirectHandler.GROUP_OWNER_INTENT_SLAVE:
-                            Log.i(TAG, "GROUP_OWNER_INTENT_SLAVE Available Services");
+                    DeviceResponse response = activity.curResponse;
+                    DeviceRequest request = activity.curRequest;
+
+                    switch (activity.deviceType) {
+                        case EMITTER:
+                            Log.i(TAG, "EMITTER Available Services");
                             if (!activity.visited.containsKey(deviceAddress)) {
-                                Log.i(TAG, "GROUP_OWNER_INTENT_SLAVE Available Services not visited");
+                                Log.i(TAG, "EMITTER Available Services not visited");
                                 activity.visited.put(deviceAddress, service);
                                 activity.onServiceClick(service);
                             }
                             break;
-                        case WifiDirectHandler.GROUP_OWNER_INTENT_MASTER:
-                            Log.i(TAG, "GROUP_OWNER_INTENT_MASTER Available Services");
-                            DeviceResponse response = activity.curResponse;
-                            DeviceRequest request = activity.curRequest;
-
+                        case QUERIER:
+                            Log.i(TAG, "QUERIER Available Services");
                             if (response != null) {
-                                Log.i(TAG, "GROUP_OWNER_INTENT_MASTER Available Services response != null");
-                                //////////////////////////////////////////////////////////////////////getHandler().removeGroup();
+                                Log.i(TAG, "QUERIER Available Services response != null");
                                 if (deviceAddress.equals(request.srcMAC)) {
                                     activity.onServiceClick(service);
                                     Log.i(TAG, "Founded "+ deviceAddress +" is last device.");
                                     Toast.makeText(
                                             activity,
-                                            "Founded "+ deviceAddress +" is last device.",
+                                            "Founded "+ deviceAddress +" device.",
                                             Toast.LENGTH_SHORT).show();
-                                } else if (request.inRequest(deviceAddress)) {
+                                }
+                            } else if (request != null) {
+                                Log.i(TAG, "QUERIER Available Services request != null");
+                                if (!activity.visited.containsKey(deviceAddress)) {
+                                    Log.i(TAG, "QUERIER Available Services not visited");
+                                    //activity.visited.put(deviceAddress, service);
+                                    activity.onServiceClick(service);
+                                }
+                            }
+                            break;
+                        case ACCESS_POINT:
+                            Log.i(WifiDirectHandler.TAG, "ACCESS_POINT Listening for connections.");
+                            if (response != null) {
+                                Log.i(TAG, "ACCESS_POINT Available Services response != null");
+                                if (request.inRequest(deviceAddress)) {
                                     activity.onServiceClick(service);
                                     Log.i(TAG, "Founded "+ deviceAddress +" is part of route.");
                                     Toast.makeText(
@@ -161,19 +178,43 @@ public class AvailableServicesFragment extends Fragment{
                                             Toast.LENGTH_SHORT).show();
                                 }
                             } else if (request != null) {
-                                Log.i(TAG, "GROUP_OWNER_INTENT_MASTER Available Services request != null");
+                                Log.i(TAG, "ACCESS_POINT Available Services request != null");
                                 if (!activity.visited.containsKey(deviceAddress)) {
-                                    Log.i(TAG, "GROUP_OWNER_INTENT_MASTER Available Services not visited");
+                                    Log.i(TAG, "ACCESS_POINT Available Services not visited");
                                     //activity.visited.put(deviceAddress, service);
                                     activity.onServiceClick(service);
                                 }
                             }
                             break;
-                        case WifiDirectHandler.GROUP_OWNER_INTENT_ACCESS_POINT:
-                            Log.i(WifiDirectHandler.TAG, "Listening for connections (IDLE).");
+                        case RANGE_EXTENDER:
+                            Log.i(WifiDirectHandler.TAG, "RANGE_EXTENDER Listening for connections.");
+                            if (response != null) {
+                                Log.i(TAG, "RANGE_EXTENDER Available Services response != null");
+                                if (request.inRequest(deviceAddress)) {
+                                    activity.onServiceClick(service);
+                                    Log.i(TAG, "Founded "+ deviceAddress +" is part of route.");
+                                    Toast.makeText(
+                                            activity,
+                                            "Founded "+ deviceAddress +" is part of route.",
+                                            Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Log.i(TAG, "Founded "+ deviceAddress +" is not part of route.");
+                                    Toast.makeText(
+                                            activity,
+                                            "Founded "+ deviceAddress +" is not part of route.",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            } else if (request != null) {
+                                Log.i(TAG, "RANGE_EXTENDER Available Services request != null");
+                                if (!activity.visited.containsKey(deviceAddress)) {
+                                    Log.i(TAG, "RANGE_EXTENDER Available Services not visited");
+                                    //activity.visited.put(deviceAddress, service);
+                                    activity.onServiceClick(service);
+                                }
+                            }
                             break;
                         default:
-                            Log.i(WifiDirectHandler.TAG, "Undefined value for Group Owner Intent.");
+                            Log.e(WifiDirectHandler.TAG, "Undefined value for Group Owner Intent.");
                     }
                 }
 

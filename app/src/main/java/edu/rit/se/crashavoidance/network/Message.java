@@ -9,6 +9,7 @@ public class Message implements Serializable {
 
     public MessageType messageType;
     public ObjectType objectType = ObjectType.REQUEST;
+    public DeviceType deviceType = DeviceType.EMITTER;
     public byte[] message;
 
     public Message(MessageType messageType, byte[] message) {

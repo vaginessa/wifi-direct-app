@@ -21,6 +21,7 @@ import java.util.HashMap;
 import edu.rit.se.crashavoidance.R;
 import edu.rit.se.crashavoidance.network.Device;
 import edu.rit.se.crashavoidance.network.DeviceRequest;
+import edu.rit.se.crashavoidance.network.DeviceType;
 import edu.rit.se.wifibuddy.WifiDirectHandler;
 
 /**
@@ -34,6 +35,7 @@ public class MainFragment extends Fragment {
     private Switch serviceRegistrationSwitch;
     private Switch noPromptServiceRegistrationSwitch;
     private Switch goIntentRegistrationSwitch;
+    private Switch rangeExtenderRegistrationSwitch;
     private Button discoverServicesButton;
     private Button lookForNameID;
     private AvailableServicesFragment availableServicesFragment;
@@ -57,6 +59,7 @@ public class MainFragment extends Fragment {
         serviceRegistrationSwitch = (Switch) view.findViewById(R.id.serviceRegistrationSwitch);
         noPromptServiceRegistrationSwitch = (Switch) view.findViewById(R.id.noPromptServiceRegistrationSwitch);
         goIntentRegistrationSwitch = (Switch) view.findViewById(R.id.goIntentRegistrationSwitch);
+        rangeExtenderRegistrationSwitch = (Switch) view.findViewById(R.id.rangeExtenderRegistrationSwitch);
 
         // Initialize Discover Services Button
         discoverServicesButton = (Button) view.findViewById(R.id.discoverServicesButton);
@@ -98,7 +101,7 @@ public class MainFragment extends Fragment {
                         HashMap<String, String> record = new HashMap<>();
                         record.put("Name", getHandler().getThisDevice().deviceName);
                         record.put("Address", getHandler().getThisDevice().deviceAddress);
-                        record.put("master",  isMaster ? "True": "False");
+                        record.put("DeviceType",  mainActivity.deviceType.toString());
                         getHandler().addLocalService("Wi-Fi Buddy", record);
                         noPromptServiceRegistrationSwitch.setEnabled(false);
                     } else {
@@ -112,31 +115,13 @@ public class MainFragment extends Fragment {
             }
         });
 
-//        // Set Toggle Listener for No-Prompt Service Registration Switch
-//        noPromptServiceRegistrationSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//            /**
-//             * Add or Remove a No-Prompt Local Service when Switch is toggled
-//             */
-//            @Override
-//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//                Log.i(TAG, "\nNo-Prompt Service Registration Switch Toggled");
-//                if (isChecked) {
-//                    // Add no-prompt local service
-//                    ServiceData serviceData = new ServiceData(
-//                            "Wi-Fi Direct Handler",         // Name
-//                            4545,                           // Port
-//                            new HashMap<String, String>(),  // Record
-//                            ServiceType.PRESENCE_TCP        // Type
-//                    );
-//                    getHandler().startAddingNoPromptService(serviceData);
-//                    serviceRegistrationSwitch.setEnabled(false);
-//                } else {
-//                    // Remove no-prompt local service
-//                    getHandler().removeService();
-//                    serviceRegistrationSwitch.setEnabled(true);
-//                }
-//            }
-//        });
+        rangeExtenderRegistrationSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                getHandler().setGoIntent( WifiDirectHandler.GROUP_OWNER_INTENT_SLAVE );
+                mainActivity.deviceType = isChecked ? DeviceType.RANGE_EXTENDER : DeviceType.EMITTER;
+            }
+        });
 
         goIntentRegistrationSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -144,6 +129,7 @@ public class MainFragment extends Fragment {
                 getHandler().setGoIntent( isChecked ?
                         WifiDirectHandler.GROUP_OWNER_INTENT_ACCESS_POINT :
                         WifiDirectHandler.GROUP_OWNER_INTENT_SLAVE );
+                mainActivity.deviceType = isChecked ? DeviceType.ACCESS_POINT : DeviceType.EMITTER;
             }
         });
 
@@ -156,7 +142,6 @@ public class MainFragment extends Fragment {
             public void onClick(View v) {
                 Log.i(TAG, "\nDiscover Services Button Pressed");
 
-                //if (getHandler().getGoIntent() == WifiDirectHandler.GROUP_OWNER_INTENT_SLAVE) {
                 Device curDevice = new Device(
                         nameIDEditText.getText().toString(),
                         mainActivity.getCurrentLocation(),
@@ -165,7 +150,6 @@ public class MainFragment extends Fragment {
                 curDevice.myMAC = getHandler().getThisDevice().deviceAddress;
 
                 mainActivity.curDevice = curDevice;
-                //}
 
                 if (availableServicesFragment == null) {
                     availableServicesFragment = new AvailableServicesFragment();
@@ -200,12 +184,9 @@ public class MainFragment extends Fragment {
 
                 mainActivity.curRequest = deviceRequest;
 
-                getHandler().setGoIntent(WifiDirectHandler.GROUP_OWNER_INTENT_MASTER);
+                mainActivity.deviceType = DeviceType.QUERIER;
 
-                ////TODO:test
-                //getHandler().setGoIntent(WifiDirectHandler.GROUP_OWNER_INTENT_SLAVE);
-
-                //getHandler().setIsLooking(true);
+                getHandler().setGoIntent(WifiDirectHandler.GROUP_OWNER_INTENT_SLAVE);
 
                 if (availableServicesFragment == null) {
                     availableServicesFragment = new AvailableServicesFragment();
