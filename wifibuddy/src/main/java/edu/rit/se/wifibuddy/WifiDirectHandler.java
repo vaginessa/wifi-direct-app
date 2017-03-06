@@ -576,6 +576,22 @@ public class WifiDirectHandler extends NonStopIntentService implements
         }
     }
 
+    public void cancelConnect() {
+        if (serviceRequest != null) {
+            wifiP2pManager.cancelConnect(channel, new WifiP2pManager.ActionListener() {
+                @Override
+                public void onSuccess() {
+                    Log.i(TAG, "Successful cancelConnect()");
+                }
+
+                @Override
+                public void onFailure(int i) {
+                    Log.e(TAG, "Failure cancelConnect()");
+                }
+            });
+        }
+    }
+
     private void clearServiceDiscoveryRequests() {
         if (serviceRequest != null) {
             wifiP2pManager.clearServiceRequests(channel, new WifiP2pManager.ActionListener() {

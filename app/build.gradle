@@ -12,6 +12,11 @@ android {
         versionName "1.0"
     }
     buildTypes {
+        //http://stackoverflow.com/questions/24770081/htc-one-m8-running-on-android-studio
+        debug {
+            debuggable true
+        }
+
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -25,13 +30,14 @@ repositories {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.4.0'
-    compile 'com.android.support:design:23.4.0'
-//    compile 'io.nlopez.smartlocation:library:3.2.1'
-    compile 'com.google.android.gms:play-services-appindexing:9.0.1'
-//    compile 'com.github.Crash-Test-Buddies:WiFi-Buddy:v0.8.0'
+    //    compile 'io.nlopez.smartlocation:library:3.2.1'
+    //    compile 'com.github.Crash-Test-Buddies:WiFi-Buddy:v0.8.0'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
     compile project(path: ':wifibuddy')
+    compile 'com.android.support:appcompat-v7:23.4.0'
+    compile 'com.android.support:design:23.4.0'
+    compile 'com.google.android.gms:play-services-appindexing:9.8.0'
     compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.android.support:support-v4:23.4.0'
+    testCompile 'junit:junit:4.12'
 }

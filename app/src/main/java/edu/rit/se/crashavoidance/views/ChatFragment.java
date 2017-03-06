@@ -27,6 +27,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 
@@ -271,6 +272,7 @@ public class ChatFragment extends ListFragment {
     public void processMessage(Message message) {
         String msg = new String(message.message);
         Log.i(TAG, ""+message);
+        Toast.makeText(activity, ""+message, Toast.LENGTH_SHORT).show();
 
         if (message.objectType == ObjectType.RESPONSE) {
             Log.i(TAG, "Processing RESPONSE ----> " + msg);
@@ -281,6 +283,8 @@ public class ChatFragment extends ListFragment {
             activity.curResponse = response;
 
             handlerAccessor.getWifiHandler().removeGroup();
+
+            Toast.makeText(activity, "NameID: "+response.resDevice.nameID, Toast.LENGTH_SHORT).show();
 
             returnToListFragment();
 
@@ -310,14 +314,14 @@ public class ChatFragment extends ListFragment {
                 Log.i(TAG, "Device " + gson.toJson(deviceRequest) + " not found.");
 
                 //Sometimes the connection doesn't get stablished correctly at this point
-                //so added this fix.
+                //so added this fix it.
                 if(deviceRequest.srcMAC.equals(handlerAccessor.getWifiHandler().getThisDevice().deviceAddress)) {
                     ChatFragment chatFragment = new ChatFragment();
                     activity.replaceFragment(chatFragment);
                 } else {
                     sendMessage("", ObjectType.WAIT);
 
-                    postDelayed(new Runnable() {
+                    /*postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             handlerAccessor.getWifiHandler().removeGroup();
@@ -326,7 +330,10 @@ public class ChatFragment extends ListFragment {
                             activity.replaceFragment(availableServicesFragment);
                             Log.i(TAG, "Switching to Services fragment");
                         }
-                    }, 2000);
+                    }, 2000);*/
+
+                    handlerAccessor.getWifiHandler().removeGroup();
+                    returnToListFragment();
                 }
             }
         } else if (message.objectType ==  ObjectType.HELLO) {

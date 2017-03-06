@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements WiFiDirectHandler
     public Device curDevice;
     public DeviceRequest curRequest;
     public DeviceResponse curResponse;
-    public DeviceType deviceType;
+    public DeviceType deviceType = DeviceType.EMITTER;
 
     public List<Device> devices = new ArrayList<>();
     public List<DeviceRequest> deviceRequests = new ArrayList<>();
@@ -220,14 +220,20 @@ public class MainActivity extends AppCompatActivity implements WiFiDirectHandler
             }
             replaceFragment(chatFragment);
             Log.i(TAG, "Switching to Chat fragment");
-        } else if (service.getSrcDevice().status == WifiP2pDevice.AVAILABLE ||
-                service.getSrcDevice().status == WifiP2pDevice.INVITED) {
-            //if INVITED then cancelConnect(channel, actionListener)
+        } else if (service.getSrcDevice().status == WifiP2pDevice.AVAILABLE) {
             String sourceDeviceName = service.getSrcDevice().deviceName;
             if (sourceDeviceName.equals("")) {
                 sourceDeviceName = "other device";
             }
             Toast.makeText(this, "Inviting " + sourceDeviceName + " to connect", Toast.LENGTH_LONG).show();
+            wifiDirectHandler.initiateConnectToService(service);
+        } else if(service.getSrcDevice().status == WifiP2pDevice.INVITED) {
+            String sourceDeviceName = service.getSrcDevice().deviceName;
+            if (sourceDeviceName.equals("")) {
+                sourceDeviceName = "other device";
+            }
+            Toast.makeText(this, "Device " + sourceDeviceName + " already invited", Toast.LENGTH_LONG).show();
+            wifiDirectHandler.cancelConnect();
             wifiDirectHandler.initiateConnectToService(service);
         } else {
             //TODO:test this clause many times
