@@ -14,9 +14,9 @@
             android:id="@+id/nameIDEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:focusableInTouchMode="true"
             android:hint="@string/type_message"
             android:visibility="visible"
+            android:text="Q"
             android:inputType="textCapSentences">
         </EditText>
 
@@ -50,7 +50,7 @@
             android:text="@string/action_register_no_prompt"
             android:checked="false"
             android:enabled="false"
-            android:visibility="invisible" />
+            android:visibility="gone" />
 
         <Button
             style="@style/styleButtonDefault"

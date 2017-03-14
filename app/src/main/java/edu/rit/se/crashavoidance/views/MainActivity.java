@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements WiFiDirectHandler
     public Device curDevice;
     public DeviceRequest curRequest;
     public DeviceResponse curResponse;
+    public Map curRecord;
     public DeviceType deviceType = DeviceType.EMITTER;
 
     public List<Device> devices = new ArrayList<>();

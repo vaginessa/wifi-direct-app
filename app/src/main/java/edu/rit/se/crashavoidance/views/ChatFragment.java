@@ -37,6 +37,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import edu.rit.se.crashavoidance.R;
 import edu.rit.se.crashavoidance.network.Device;
@@ -141,7 +142,13 @@ public class ChatFragment extends ListFragment {
             }
         });
 
-        switch (activity.deviceType) {
+        sendInitialMessage(activity.deviceType);
+
+        return view;
+    }
+
+    private void sendInitialMessage(DeviceType deviceType) {
+        switch (deviceType) {
             case EMITTER:
                 Log.i(TAG, "EMITTER");
                 if (activity.curDevice != null) {
@@ -180,29 +187,36 @@ public class ChatFragment extends ListFragment {
                 break;
             case RANGE_EXTENDER:
                 Log.i(TAG, "RANGE_EXTENDER");
-                if (activity.curResponse != null) {
-                    Log.i(TAG, "Response");
 
-                    sendMessage(gson.toJson(activity.curResponse), ObjectType.RESPONSE);
-                    Log.i(TAG, "Message sent successfully.");
+                Map record = activity.curRecord;
+                String deviceTypeRecord = (String) record.get("DeviceType");
 
-                    //TODO: list containing sent requests & responses
-                    activity.curResponse = null;
-                    activity.curRequest = null;
-                } else if (activity.curRequest != null) { //TODO: verify if it doesn't loop
-                    Log.i(TAG, "Request");
-                    sendMessage(gson.toJson(activity.curRequest), ObjectType.REQUEST);
-                    Log.i(TAG, "Message sent successfully.");
+                if (deviceTypeRecord.equals(DeviceType.ACCESS_POINT_WREQ)
+                        || deviceTypeRecord.equals(DeviceType.ACCESS_POINT_WRES)) {
+                    Log.i(ChatFragment.TAG, "Waiting for incomming messages.");
+                } else {
+                    if (activity.curResponse != null) {
+                        Log.i(TAG, "Response");
 
-                    //TODO: list containing sent requests & responses
-                    activity.curRequest = null;
+                        sendMessage(gson.toJson(activity.curResponse), ObjectType.RESPONSE);
+                        Log.i(TAG, "Message sent successfully.");
+
+                        //TODO: list containing sent requests & responses
+                        activity.curResponse = null;
+                        activity.curRequest = null;
+                    } else if (activity.curRequest != null) { //TODO: verify if it doesn't loop
+                        Log.i(TAG, "Request");
+                        sendMessage(gson.toJson(activity.curRequest), ObjectType.REQUEST);
+                        Log.i(TAG, "Message sent successfully.");
+
+                        //TODO: list containing sent requests & responses
+                        activity.curRequest = null;
+                    }
                 }
                 break;
             default:
                 Log.e(TAG, "Not defined device type.");
         }
-
-        return view;
     }
 
     private void returnToListFragment() {
@@ -320,18 +334,6 @@ public class ChatFragment extends ListFragment {
                     activity.replaceFragment(chatFragment);
                 } else {
                     sendMessage("", ObjectType.WAIT);
-
-                    /*postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            handlerAccessor.getWifiHandler().removeGroup();
-
-                            AvailableServicesFragment availableServicesFragment = new AvailableServicesFragment();
-                            activity.replaceFragment(availableServicesFragment);
-                            Log.i(TAG, "Switching to Services fragment");
-                        }
-                    }, 2000);*/
-
                     handlerAccessor.getWifiHandler().removeGroup();
                     returnToListFragment();
                 }

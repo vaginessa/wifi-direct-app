@@ -110,8 +110,14 @@ class AvailableServicesListViewAdapter extends BaseAdapter {
         }
     }
 
+    public void removeItem(DnsSdService service) {
+        serviceList.remove(service);
+        this.notifyDataSetChanged();
+    }
+
     public Boolean isDiscoverableFor(DeviceType myType, String deviceType) {
-        if(myType == DeviceType.ACCESS_POINT) {
+        return true;
+        /*if(myType == DeviceType.ACCESS_POINT) {
             return deviceType.equals(DeviceType.RANGE_EXTENDER.toString());
         } else if(myType == DeviceType.EMITTER) {
             return deviceType.equals(DeviceType.ACCESS_POINT.toString());
@@ -120,7 +126,7 @@ class AvailableServicesListViewAdapter extends BaseAdapter {
         } else if(myType == DeviceType.RANGE_EXTENDER) {
             return deviceType.equals(DeviceType.ACCESS_POINT.toString());
         }
-        return false;
+        return false;*/
     }
 
     @Override

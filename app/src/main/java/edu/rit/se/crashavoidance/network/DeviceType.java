@@ -10,5 +10,5 @@ public enum DeviceType {
     ACCESS_POINT_WREQ,
     ACCESS_POINT_WRES,
     QUERIER,
-    EMITTER
+    EMITTER;
 }

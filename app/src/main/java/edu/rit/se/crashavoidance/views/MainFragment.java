@@ -107,10 +107,12 @@ public class MainFragment extends Fragment {
                     } else {
                         Log.w(TAG, "Service already added");
                     }
+                    discoverServicesButton.setEnabled(true);
                 } else {
                     // Remove local service
                     getHandler().removeService();
                     noPromptServiceRegistrationSwitch.setEnabled(true);
+                    discoverServicesButton.setEnabled(false);
                 }
             }
         });
