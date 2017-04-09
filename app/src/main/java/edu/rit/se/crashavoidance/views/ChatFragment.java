@@ -50,6 +50,8 @@ import edu.rit.se.crashavoidance.network.ObjectType;
 import edu.rit.se.wifibuddy.CommunicationManager;
 import edu.rit.se.wifibuddy.WifiDirectHandler;
 
+import static edu.rit.se.crashavoidance.network.DeviceType.ACCESS_POINT;
+
 /**
  * This fragment handles chat related UI which includes a list view for messages
  * and a message entry field with a send button.
@@ -167,6 +169,10 @@ public class ChatFragment extends ListFragment {
                 break;
             case ACCESS_POINT:
                 Log.i(TAG, "ACCESS_POINT");
+            case ACCESS_POINT_WREQ:
+                Log.i(TAG, "ACCESS_POINT_WREQ");
+            case ACCESS_POINT_WRES:
+                Log.i(TAG, "ACCESS_POINT_WRES");
                 if (activity.curResponse != null) {
                     Log.i(TAG, "Response");
 
@@ -175,7 +181,6 @@ public class ChatFragment extends ListFragment {
 
                     //TODO: list containing sent requests & responses
                     activity.curResponse = null;
-                    activity.curRequest = null;
                 } else if (activity.curRequest != null) { //TODO: verify if it doesn't loop
                     Log.i(TAG, "Request");
                     sendMessage(gson.toJson(activity.curRequest), ObjectType.REQUEST);
@@ -330,9 +335,11 @@ public class ChatFragment extends ListFragment {
                 //Sometimes the connection doesn't get stablished correctly at this point
                 //so added this fix it.
                 if(deviceRequest.srcMAC.equals(handlerAccessor.getWifiHandler().getThisDevice().deviceAddress)) {
+                    Log.i(TAG, "Trying again to send message, due connection not stablished.");
                     ChatFragment chatFragment = new ChatFragment();
                     activity.replaceFragment(chatFragment);
                 } else {
+                    Log.i(TAG, "Sending WAIT");
                     sendMessage("", ObjectType.WAIT);
                     handlerAccessor.getWifiHandler().removeGroup();
                     returnToListFragment();
@@ -347,8 +354,24 @@ public class ChatFragment extends ListFragment {
         } else if (message.objectType == ObjectType.WAIT) {
             Log.i(TAG, "Processing WAIT ----> " + msg);
             handlerAccessor.getWifiHandler().removeGroup();
+            changeServicesDeviceType(DeviceType.ACCESS_POINT);
             returnToListFragment();
         }
+    }
+
+    public void changeServicesDeviceType(DeviceType deviceType) {
+        HashMap<String, String> record = new HashMap<>();
+        record.put("Name", getHandler().getThisDevice().deviceName);
+        record.put("Address", getHandler().getThisDevice().deviceAddress);
+        record.put("DeviceType",  deviceType.toString());
+        getHandler().addLocalService("Wi-Fi Buddy", record);
+    }
+
+    /**
+     * Shortcut for accessing the wifi handler
+     */
+    private WifiDirectHandler getHandler() {
+        return handlerAccessor.getWifiHandler();
     }
 
     public void pushImage(Bitmap image) {
